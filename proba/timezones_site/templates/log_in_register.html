@@ -1,0 +1,144 @@
+{% extends 'index.html' %}
+
+
+{{% block javascript %}
+
+    $("#button_log_in").click(function(){
+
+        var name = $("#name_log_in").val();
+        var password = $("#pass_log_in").val();
+
+        $.ajax({
+
+            url: '{% url "log_in_form_event" %}',
+            type: 'POST',
+            data: {'csrfmiddlewaretoken': '{{csrf_token}}', 'name': name, 'password': password},
+            dataType: 'json',
+            statusCode: {
+                409: function() {alert( "conflict, this user exists" );},
+                405: function() {console.log( "method not allowed" );},
+                400: function() {alert( "bad request, no data provided" );},
+                401: function() {alert( "bad password" );},
+                200: function() {
+                    $("#profile_div").show();
+                    $("#log_in_register_div").hide();
+                    console.log("logged in");},
+
+                },
+            success: function (data) {$("body").append(data.success);},
+        });
+    });
+
+
+
+    $("#button_register").click(function(){
+
+        var name = $("#name").val();
+        var email = $("#email").val();
+        var pass = $("#pass").val();
+        var pass1 = $("#pass1").val();
+
+        $.ajax({
+
+            url: '{% url "register_form_event" %}',
+            type: 'POST',
+            data: {'csrfmiddlewaretoken': '{{csrf_token}}', 'name': name, 'email': email, 'password': pass, 'password1': pass1},
+            dataType: 'json',
+            statusCode: {
+                409: function() {alert( "conflict, this user exists" );},
+                405: function() {console.log( "method not allowed" );},
+                400: function() {alert( "bad request, no data provided" );},
+                201: function() {alert( "user created" );
+                    $("#profile_div").show();
+                    $("#log_in_register_div").hide();}
+            },
+            success: function (data) {$("body").append(data.success);},
+        });
+    });
+
+
+    $("#button_logout").click(function(){
+
+        $.ajax({
+            url: '{% url "logout_event" %}',
+            type: 'POST',
+            data: {'csrfmiddlewaretoken': '{{csrf_token}}'},
+            dataType: 'json',
+            statusCode: {
+                401: function() {alert( "bad request, no data provided" );},
+                405: function() {console.log( "method not allowed" );},
+                200: function() {
+
+                    $("#profile_div").hide();
+                    $("#log_in_register_div").show();
+                    document.getElementById("name_log_in").value = "";
+                    document.getElementById("pass_log_in").value = "";
+                    document.getElementById("name").value = "";
+                    document.getElementById("email").value = "";
+                    document.getElementById("pass").value = "";
+                    document.getElementById("pass1").value = "";
+
+
+
+                    var frameid = document.getElementById("to_be_filled_with_entries");
+                    if (frameid){
+                        //var od_tuka = document.getElementById("entry_list_wrapper");
+                        document.getElementById("entry_list_wrapper").removeChild(frameid)
+                    }
+                    document.getElementById("entry_list_wrapper").style.display = "none";
+
+
+
+
+                },
+            },
+            success: function (data) {$("body").append(data.success);},
+        });
+    });
+
+{% endblock %}
+
+{{% block body %}
+
+
+
+
+
+
+<div id="log_in_register_div"  class="regular">
+    <div id="log_in_div">
+        <p><label>Username</label></p>
+        <p><input type="text" id='name_log_in' value=""></p>
+        <p><label>Password</label></p>
+        <p><input type="password" id='pass_log_in' value=""></p>
+        <p><input type="button" id="button_log_in" class="regular_button" value="log in"></p>
+    </div>
+
+    <div id="register_div" class="regular">
+        <p><label>Username</label></p>
+        <p><input type="text" id='name' value=""></p>
+        <p><label>Email</label></p>
+        <p><input type="text" id='email' value=""></p>
+        <p><label>Password</label></p>
+        <p><input type="password" id='pass' value=""></p>
+        <p><label>Retype Password</label></p>
+        <p><input type="password" id='pass1' value=""></p>
+        <p><input type="button" class="regular_button" id="button_register" value="register"></p>
+    </div>
+</div>
+
+
+
+<div id="profile_div" style="display: none;">
+
+    {% include "entry_list.html" %}
+
+
+    <div id="logout_div" class="regular">
+        <input type="button" class="regular_button" id="button_logout" value="logout">
+    </div>
+
+</div>
+
+
+{% endblock %}

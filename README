@@ -1,0 +1,7 @@
+To use the app you need to
+- start the virtualenv in timezones_site with source venv/bin/activate when you are in the timezones_site_folder
+- and then in the requirements.txt file there is the pip freeze which needs to be installed
+- if you are using an IDE then the project interpreter needs to be set to the one in the venv, it is Python 2.7
+- after that just run the server
+
+
