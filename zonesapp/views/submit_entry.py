@@ -7,13 +7,12 @@ from django.views.decorators.csrf import csrf_exempt
 from zonesapp.all_cities import get_city_info
 from django.http import QueryDict
 from zonesapp.get_entry_list import get_all_entries_list
-
+from django.core.exceptions import ValidationError
 
 
 @csrf_exempt
 def check_city(request):
 
-    print "REQUEST", request
 
     if request.method == "POST":
 
@@ -80,6 +79,15 @@ def submit_entry(request):
             user=User.objects.get(username=current_user),
             gmt_offset_display=str(put.get('gmt_offset')),
         )
+
+        try:
+            new_entry.full_clean()
+
+
+        except ValidationError as e:
+            response = {'success': False, 'errors': e.message_dict}
+            return HttpResponse(simplejson.dumps(response), content_type='application/json', status=400)
+
         new_entry.save()
         current_user = request.user
         current_user_id = current_user.id
@@ -102,6 +110,7 @@ def submit_entry(request):
             pass
 
         all_list = get_all_entries_list(entries)
+
         if all_list is not False:
             response = {'success': True, 'entry_list': all_list}
             return HttpResponse(simplejson.dumps(response), content_type='application/json', status=201)

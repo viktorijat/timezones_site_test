@@ -25,7 +25,6 @@
                     console.log("logged in");},
 
                 },
-            success: function (data) {$("body").append(data.success);},
         });
     });
 
@@ -52,7 +51,6 @@
                     $("#profile_div").show();
                     $("#log_in_register_div").hide();}
             },
-            success: function (data) {$("body").append(data.success);},
         });
     });
 
@@ -92,7 +90,6 @@
 
                 },
             },
-            success: function (data) {$("body").append(data.success);},
         });
     });
 
@@ -105,7 +102,8 @@
 
 
 
-<div id="log_in_register_div"  class="regular">
+
+<div id="log_in_register_div" {%if request.user.id %} style="display: none;" {% endif %} class="regular">
     <div id="log_in_div">
         <p><label>Username</label></p>
         <p><input type="text" id='name_log_in' value=""></p>
@@ -128,8 +126,7 @@
 </div>
 
 
-
-<div id="profile_div" style="display: none;">
+<div id="profile_div" {%if not request.user.id %} style="display: none;" {% endif %}>
 
     {% include "entry_list.html" %}
 

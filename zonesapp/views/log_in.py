@@ -9,6 +9,8 @@ from django.core.context_processors import csrf
 @csrf_exempt
 def log_in_form_event(request):
 
+
+
     c = {}
     c.update(csrf(request))
     print "c", c
