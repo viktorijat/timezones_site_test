@@ -3,6 +3,7 @@ body {background-color:#afcbd2;}
 p{font-family:Sans-serif;}
 
 
+<<<<<<< HEAD
 input {
     width: 200px;
     height: 20px;
@@ -21,6 +22,8 @@ input {
     margin: 0 0 5px 0;
 }
 
+=======
+>>>>>>> 167299c35b3df50037a61277ccea4cc5db38d3e8
 
 .regular_button {
 	-webkit-box-shadow: 0px 10px 14px -7px #276873;
@@ -44,7 +47,11 @@ input {
 	padding:5px 50px;
 	text-decoration:none;
 	text-shadow:0px 1px 50px #3d768a;
+<<<<<<< HEAD
     width:205px;
+=======
+    width:235px;
+>>>>>>> 167299c35b3df50037a61277ccea4cc5db38d3e8
     height:25px;
     border-width:0px;
 }
@@ -120,5 +127,9 @@ td {
 }
 .edit-button:hover {
     background: #262626;
+<<<<<<< HEAD
 }
 
+=======
+}
+>>>>>>> 167299c35b3df50037a61277ccea4cc5db38d3e8
