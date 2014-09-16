@@ -85,7 +85,10 @@ def submit_entry(request):
 
 
         except ValidationError as e:
-            response = {'success': False, 'errors': e.message_dict}
+
+            resp = '<br>'.join(['%s:: %s' % (key, value) for (key, value) in e.message_dict.items()])
+            print resp
+            response = {'success': False, 'errors': resp}
             return HttpResponse(simplejson.dumps(response), content_type='application/json', status=400)
 
         new_entry.save()

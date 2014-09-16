@@ -5,6 +5,7 @@ from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
 from zonesapp.get_entry_list import get_all_entries_list
 from django.http import QueryDict
+from django.core.exceptions import ValidationError
 
 
 
@@ -30,6 +31,20 @@ def edit_by_id(request):
                 entry.entry_name = entry_name
                 entry.city_name = city_name
                 entry.gmt_offset_display = put.get('offset')
+
+
+                try:
+                    entry.full_clean()
+
+
+                except ValidationError as e:
+
+                    resp = '<br>'.join(['%s:: %s' % (key, value) for (key, value) in e.message_dict.items()])
+                    print resp
+                    response = {'success': False, 'errors': resp}
+                    return HttpResponse(simplejson.dumps(response), content_type='application/json', status=400)
+
+
                 entry.save()
 
 
