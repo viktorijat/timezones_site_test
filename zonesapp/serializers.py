@@ -2,7 +2,7 @@ from django.forms import widgets
 from rest_framework import serializers
 from zonesapp.models import UserEntry, Timezones
 from django.contrib.auth.models import User
-
+import datetime
 
 class TimezonesSerializer(serializers.ModelSerializer):
 
@@ -32,6 +32,7 @@ class TimezonesSerializer(serializers.ModelSerializer):
         return Timezones(**attrs)
     '''
 
+
 class UserEntrySerializer(serializers.ModelSerializer):
 
     pk = serializers.Field()  # Note: `Field` is an untyped read-only field.
@@ -39,10 +40,18 @@ class UserEntrySerializer(serializers.ModelSerializer):
     city_name = serializers.CharField(required=False, max_length=500)
     user = serializers.GenericForeignKey(User)
     gmt_offset_display = serializers.TimeField(default="00:00:00")
+    my_field = serializers.SerializerMethodField('get_current_time')
 
+    def get_current_time(self, gmt_offset_display):
+        return "blablabla"
+        '''
+        obj_time = datetime.timedelta(hours=gmt_offset_display.hour, minutes=gmt_offset_display.minute)
+        now = datetime.datetime.now()
+        return (now + obj_time).strftime('%Y-%m-%d %H:%M:%S %Z%z')
+        '''
     class Meta:
         model = UserEntry
-        fields = ('entry_name', 'city_name', 'user', 'gmt_offset_display')
+        fields = ('entry_name', 'city_name', 'user', 'gmt_offset_display', 'my_field')
         lookup_field = 'pk'
 
     '''

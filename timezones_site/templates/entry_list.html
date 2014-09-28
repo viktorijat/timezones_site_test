@@ -3,40 +3,24 @@
 {{% block javascript %}
 
 
-    $(".delete-button").click(function(event){
-        alert("okkk")
-        alert(id, urr)
-        id = $(this).data('url');
-        alert(id)
-
-        urrr = "profile/delete_entry/" + id
-
-    });
-
-    $(".edit-button").click(function(event){
-        alert("okkk");
-        alert(id, urr);
-        id = $(this).data('url');
-        alert(id)
-
-        urrr = "profile/edit_by_id/" + id
-
-    });
 
 
     function deleteentry(entry_id, this_table_row) {
 
         //element = document.getElementById(this_table_row);
         //alert(entry_id);
-        urll = "profile/delete_by_id/?query=" + entry_id
+        urll = "delete_by_id/" + entry_id + "/"
         $.ajax({
             url: urll,
             type: 'DELETE',
-            data: {'id': entry_id},
+            data: {'pk': entry_id},
             statusCode: {
-                401: function() {alert( "no entries found" );},
+                404: function() {console.log("entry not found");},
+                401: function() {console.log("unauthorised");},
+                405: function() {console.log("method not allowed");},
                 200: function() {//alert( "entry deleted" );
                 //alert($(element));
+
                 this_table_row.remove();
                 },
             },
@@ -44,6 +28,23 @@
         });
     }
 
+
+    function get_current_time(pk){
+
+        var current_time;
+        urll = "/get_current_time/" + pk + "/"
+        $.ajax({
+            type: "GET",
+            url: urll,
+            dataType: "json",
+            data: {"pk": pk},
+            async:false,
+            contentType: "application/json; charset=utf-8",
+            success: function (data) {current_time = data;}
+        });
+        return current_time;
+        alert(current_time);
+    }
 
 
     function editentry(i, entry_id, tdA, tdB, tdO){
@@ -53,32 +54,31 @@
         var new_offset = tdO.value;
 
 
-        urll = "profile/edit_by_id/?query=" + entry_id
+        urll = "edit_by_id/" + entry_id + "/"
 
-        //urll = "edit_by_id/?query=" + entry_id
         $.ajax({
 
             url: urll,
             type: 'UPDATE',
-            data: {'entry_id': entry_id, 'entry_name': new_entry_name, 'city_name': new_city_name, 'offset': new_offset},
+            data: {'entry_name': new_entry_name, 'city_name': new_city_name, 'offset': new_offset},
             dataType: 'json',
             statusCode:
             {
                 405: function() {console.log("method not allowed");},
+                401: function() {console.log("unauthorised");},
                 404: function() {console.log("not found");},
-                200: function() {console.log("entry changed");},
+                200: function() {get_to_show_entries();},
                 204: function() {console.log("no content to show");},
-                400: function(data) {console.log("bad request");
-                    alert(data.responseText);
-
-                },
-            },
-            success: function (data) {
-
-                show_all_entries(data);
-
+                400: function(data) {
+                        dataa = JSON.stringify(data);
+                        var to_show = JSON.parse(dataa);
+                        var to_showw = JSON.parse(to_show.responseText);
+                        alert(to_showw.errors);
+                        },
             },
         });
+
+        //get_to_show_entries();
 
 
 
@@ -88,6 +88,9 @@
 
 
     function show_all_entries(data){
+
+        dataa = JSON.stringify(data);
+        var entry_list = JSON.parse(dataa);
 
         var frameid = document.getElementById("to_be_filled_with_entries");
         if (frameid){
@@ -105,43 +108,60 @@
 
         var data_table = document.createElement('table')
 
-        for (var i = 0, n = data.entry_list.length; i < n; i++)
+        for (var i = 0, n = entry_list.length; i < n; i++)
         {
 
+            var pk = entry_list[i].pk
+            var current_time = "";
+
+            urll = "/get_current_time/" + pk + "/"
+            $.ajax({
+                type: "GET",
+                url: urll,
+                dataType: "json",
+                async:false,
+                contentType: "application/json; charset=utf-8",
+                statusCode:
+                {
+                    401: function() {console.log("unauthorised");},
+                    200: function() {console.log("OK");},
+                    405: function() {console.log("method not allowed");},
+                    404: function() {console.log("nothing found");},
+                },
+                success: function (data) {current_time = data;}
+            });
+            console.log(current_time);
+
+
+
             var tr = document.createElement('tr');
-            tr.id = data.entry_list[i].entry_id;
+            tr.id = entry_list[i].pk;
 
             var tdID = tr.appendChild(document.createElement('td'));
-            tdID.innerHTML = data.entry_list[i].entry_id;
-
-            //var tdA = tr.appendChild(document.createElement('td'));
-            //tdA.innerHTML = data.entry_list[i].entry_name;
-            //var tdB = tr.appendChild(document.createElement('td'));
-            //tdB.innerHTML = data.entry_list[i].city_name;
-            //var tdO = tr.appendChild(document.createElement('td'));
-            //tdO.innerHTML = data.entry_list[i].entry_offset;
+            tdID.innerHTML = entry_list[i].pk;
 
             var tdAtd = tr.appendChild(document.createElement('td'));
             var tdA = tdAtd.appendChild(document.createElement('input'));
             tdA.type= "text";
-            tdA.value = data.entry_list[i].entry_name;
+            tdA.value = entry_list[i].fields.entry_name;
 
             var tdBtd = tr.appendChild(document.createElement('td'));
             var tdB = tdBtd.appendChild(document.createElement('input'));
             tdB.type= "text";
-            tdB.value = data.entry_list[i].city_name;
+            tdB.value = entry_list[i].fields.city_name;
 
             var tdOtd = tr.appendChild(document.createElement('td'));
             var tdO = tdOtd.appendChild(document.createElement('input'));
             tdO.type= "time";
             tdO.placeholder="hrs:mins"
             pattern="^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$";
-            tdO.value = data.entry_list[i].entry_offset;
+            tdO.value = entry_list[i].fields.gmt_offset_display;
 
+            //TODO
             var tdCU = tr.appendChild(document.createElement('td'));
-            tdCU.innerHTML = data.entry_list[i].current_time;
-            var tdU = tr.appendChild(document.createElement('td'));
-            tdU.innerHTML = data.entry_list[i].user;
+            tdCU.innerHTML = current_time; //data.entry_list[i].current_time;
+            //var tdU = tr.appendChild(document.createElement('td'));
+            //tdU.innerHTML = data.entry_list[i].user;
 
 
 
@@ -151,8 +171,8 @@
             delB_link.type = "button";
             delB_link.setAttribute("class", "delete-button");
             delB_link.value = "X";
-            delB_link.setAttribute("data-url", data.entry_list[i].entry_id);
-            somevar = data.entry_list[i].entry_id;
+            delB_link.setAttribute("data-url", entry_list[i].pk);
+            somevar = entry_list[i].pk;
             layout_parent = data_table;
             this_table_row = tr;
             //delB_link.addEventListener('click', function(){delete_entry_func(somevar, this_table_row);}, false);
@@ -172,7 +192,7 @@
             edit_link.type = "button";
             edit_link.setAttribute("class", "edit-button");
             edit_link.value = "E";
-            edit_link.setAttribute("data-url", data.entry_list[i].entry_id);
+            edit_link.setAttribute("data-url", entry_list[i].pk);
             edit_link.id = i;
 
             edit_link.onclick = function(i, somevar, tdA, tdB, tdO){
@@ -188,9 +208,11 @@
 
     }
 
-    $("#button_show_entries").click(function(){
+
+    function get_to_show_entries(){
 
         var filter_text = $("#filter_field").val();
+
 
         $.ajax({
 
@@ -199,19 +221,33 @@
             data: {'query': filter_text},
             dataType: 'json',
             handleAs: "json",
+            //username: this_user,
+            //password: this_password,
+            //beforeSend: function (request){request.setRequestHeader("Authorization", "Basic  dG9tY2F0OnRvbWNhdA==");},
+            //headers: {"Authorization": "Basic " + btoa({{ request.user.username }} )},
             statusCode:
             {
-                401: function() {console.log("no entries found");},
-                200: function() {console.log("entries ok");},
+                404: function() {console.log("no entries found");},
+                404: function() {console.log("nothing found");},
+                401: function() {console.log("unauthorised");},
+                200: function(data) {show_all_entries(data);},
             },
 
-            success: function (data)
-            {
-                show_all_entries(data);
-            },
+            //success: function (data)
+            //{
+            //    show_all_entries(data);
+            //},
 
 
         });
+
+
+    }
+
+
+    $("#button_show_entries").click(function(){
+
+        get_to_show_entries();
     });
 
 
@@ -229,27 +265,23 @@
             dataType: 'json',
             statusCode:
             {
-                401: function() {console.log("no entries found");},
-                201: function() {console.log("entry created");},
+                409: function() {alert("entry with this name already exists");},
+                401: function() {alert("unauthorised");},
+                201: function() {get_to_show_entries();},
                 405: function() {console.log("method not allowed");},
-                400: function(data) {console.log("bad request");
-                    alert(data.responseText);
+                400: function(data) {
+                        dataa = JSON.stringify(data);
+                        var to_show = JSON.parse(dataa);
+                        var to_showw = JSON.parse(to_show.responseText);
+                        alert(to_showw.errors);
+                        },
 
-                },
-            },
-            success: function (data) {
-                show_all_entries(data);
-                if (data.success){
-                        show_all_entries(data);
-                    }
-                else{
-                    alert(data.errors);
-                    console.log(data.errors);
-                }
-
-
+                //{alert(data.responseText);},
             },
         });
+
+
+
     });
 
     $("#button_check_city").click(function(){
@@ -259,12 +291,13 @@
         $.ajax({
 
             url: '{% url "check_city" %}',
-            type: 'POST',
-            data: {'city_name': city_name},
+            type: 'GET',
+            data: {'query': city_name},
             dataType: 'json',
             statusCode:
             {
-                401: function() {console.log("no entries found");},
+                404: function() {console.log("no entries found");},
+                401: function() {console.log("unauthorised");},
                 200: function() {console.log("entries ok");},
                 405: function() {console.log("method not allowed");},
             },
@@ -334,9 +367,13 @@
 </div>
 </div>
 
+
+
 {% endblock %}
 
 <!--
+<label id="name">{{ request.user.username }}</label>
+<label id="password">{{ request.user.password }}</label>
 <div id="entries_list">
 
     <h1>Entries</h1>

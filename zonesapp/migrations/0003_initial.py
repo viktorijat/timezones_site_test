@@ -25,6 +25,7 @@ class Migration(SchemaMigration):
             ('entry_name', self.gf('django.db.models.fields.TextField')(max_length=500)),
             ('city_name', self.gf('django.db.models.fields.TextField')(max_length=500)),
             ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('gmt_offset_display', self.gf('django.db.models.fields.TimeField')(default='00:00:00')),
         ))
         db.send_create_signal(u'zonesapp', ['UserEntry'])
 
@@ -99,6 +100,7 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'UserEntry'},
             'city_name': ('django.db.models.fields.TextField', [], {'max_length': '500'}),
             'entry_name': ('django.db.models.fields.TextField', [], {'max_length': '500'}),
+            'gmt_offset_display': ('django.db.models.fields.TimeField', [], {'default': "'00:00:00'"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'tmz': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['zonesapp.Timezones']", 'symmetrical': 'False'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})

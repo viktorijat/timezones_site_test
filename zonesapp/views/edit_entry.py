@@ -6,78 +6,64 @@ from django.views.decorators.csrf import csrf_exempt
 from zonesapp.get_entry_list import get_all_entries_list
 from django.http import QueryDict
 from django.core.exceptions import ValidationError
-
+from zonesapp.utils import *
 
 
 @csrf_exempt
-def edit_by_id(request):
+@basic_http_auth
+def edit_by_id(request, pk):
 
-    if request.method == "UPDATE" or request.method == "PUT":
+    if request.user.id:
 
-        put = QueryDict(request.body)
-        entry_id = str(put.get('entry_id'))
-        entry_name = str(put.get('entry_name'))
-        city_name = str(put.get('city_name'))
-        offset = str(put.get('offset'))
+        if request.method == "UPDATE" or request.method == "PUT":
 
-        if entry_id is not "" and entry_name is not "" and city_name is not "" and offset is not "":
+            put = QueryDict(request.body)
+            entry_name = str(put.get('entry_name'))
+            city_name = str(put.get('city_name'))
+            offset = str(put.get('offset'))
 
-            print entry_id, entry_name, city_name, offset
-
-            entry = UserEntry.objects.get(pk=entry_id)
-
-            if entry:
-
-                entry.entry_name = entry_name
-                entry.city_name = city_name
-                entry.gmt_offset_display = put.get('offset')
-
+            if entry_name is not "" and city_name is not "" and offset is not "":
 
                 try:
-                    entry.full_clean()
+                    entry = UserEntry.objects.get(pk=pk)
+                    entry.entry_name = entry_name
+                    entry.city_name = city_name
+                    entry.gmt_offset_display = put.get('offset')
+
+                    try:
+                        entry.full_clean()
 
 
-                except ValidationError as e:
+                    except ValidationError as e:
 
-                    resp = '<br>'.join(['%s:: %s' % (key, value) for (key, value) in e.message_dict.items()])
-                    print resp
-                    response = {'success': False, 'errors': resp}
-                    return HttpResponse(simplejson.dumps(response), content_type='application/json', status=400)
+                        line = ""
+                        for key, value in e.message_dict.items():
+                            row = ":".join([key, str(value[0])])
+                            if line == "":
+                                line = row
+                            else:
+                                line = "\n".join([line, row])
+
+                        response = {'success': False, 'errors': line}
+
+                        return HttpResponse(simplejson.dumps(response), content_type='application/json', status=400)
 
 
-                entry.save()
-
-
-                current_user = request.user
-                print "current_user", current_user
-                current_user_id = current_user.id
-                entries = UserEntry.objects.filter(user=current_user_id)
-
-                all_list = get_all_entries_list(entries)
-
-                if all_list is not False:
-
-                    response = {'success': True, 'entry_list': all_list}
+                    entry.save()
+                    response = {'success': True}
                     return HttpResponse(simplejson.dumps(response), content_type='application/json', status=200)
 
-                else:
-                    response = {'success': False, 'entry_list': "no content to show"}
-                    return HttpResponse(simplejson.dumps(response), content_type='application/json', status=204)
+                except UserEntry.DoesNotExist:
 
-            else:
-
-                entries = UserEntry.objects.all()
-                all_list = get_all_entries_list(entries)
-
-                if all_list is not False:
-
-                    response = {'success': True, 'entry_list': all_list}
+                    response = {'success': False}
                     return HttpResponse(simplejson.dumps(response), content_type='application/json', status=404)
 
-                else:
-                    response = {'success': False, 'entry_list': "no content to show"}
-                    return HttpResponse(simplejson.dumps(response), content_type='application/json', status=204)
+
+        else:
+            response = {'note': "method not allowed"}
+            return HttpResponse(simplejson.dumps(response), content_type='application/json', status=405)
 
     else:
-        response = {'note': "method not allowed"}
-        return HttpResponse(simplejson.dumps(response), content_type='application/json', status=405)
+        response = {'note': "unauthorised"}
+        return HttpResponse(simplejson.dumps(response), content_type='application/json', status=401)
+

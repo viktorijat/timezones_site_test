@@ -10,7 +10,8 @@ https://docs.djangoproject.com/en/dev/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 #from django.conf.global_settings import SESSION_ENGINE
-import os, sys
+import os
+import sys
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 PROJECT_PATH = os.path.realpath(os.path.dirname(__file__))
@@ -19,6 +20,11 @@ sys.path.append(PROJECT_PATH)
 # See https://docs.djangoproject.com/en/dev/howto/deployment/checklist/
 
 
+
+from configurations import Configuration
+
+class Dev(Configuration):
+    DEBUG = True
 
 
 #CONTEXT_PROCESSORS = (
@@ -76,7 +82,18 @@ INSTALLED_APPS = (
     'rest_auth',
 )
 
+'''
+SERIALIZATION_MODULES = {
+    'json': 'wadofstuff.django.serializers.json'
+}
+
+'''
+
+
+#from zonesapp.utils import BasicAuthMiddleware
+
 MIDDLEWARE_CLASSES = (
+    #'zonesapp.utils.BasicAuthMiddlewere',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -92,7 +109,11 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
                                    'rest_framework.permissions.IsAuthenticated', ],
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
-    'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework.authentication.SessionAuthentication',),
+     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+
 }
 
 #REST_REGISTRATION_BACKEND = 'rest_auth.backends.rest_registration.RESTRegistrationView'
@@ -100,19 +121,27 @@ REST_PROFILE_MODULE = 'zonesapp.UserProfile'
 
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
-SOUTH_TESTS_MIGRATE = False
+#SOUTH_TESTS_MIGRATE = False
 WSGI_APPLICATION = 'timezones_site.wsgi.application'
 
 
 # Database
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
+}
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+    },
 }
+
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/dev/topics/i18n/
@@ -135,7 +164,7 @@ APPEND_SLASH = False
 STATIC_URL = '/static/'
 
 
-TATICFILES_FINDERS = (
+STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )

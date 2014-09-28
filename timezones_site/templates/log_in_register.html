@@ -12,6 +12,10 @@
 
             url: '{% url "log_in_form_event" %}',
             type: 'POST',
+            //username: name,
+            //password: password,
+            //beforeSend: function (request){request.setRequestHeader("Authorization", "Basic  dG9tY2F0OnRvbWNhdA==");},
+            headers: {"Authorization": "Basic " + btoa(name + ":" + password)},
             data: {'csrfmiddlewaretoken': '{{csrf_token}}', 'name': name, 'password': password},
             dataType: 'json',
             statusCode: {
@@ -41,12 +45,19 @@
 
             url: '{% url "register_form_event" %}',
             type: 'POST',
+            beforeSend: function (request){request.setRequestHeader("Authorization", "Basic  dG9tY2F0OnRvbWNhdA==");},
+            headers: {"Authorization": "Basic " + btoa(name + ":" + pass)},
             data: {'csrfmiddlewaretoken': '{{csrf_token}}', 'name': name, 'email': email, 'password': pass, 'password1': pass1},
             dataType: 'json',
             statusCode: {
                 409: function() {alert( "conflict, this user exists" );},
                 405: function() {console.log( "method not allowed" );},
-                400: function() {alert( "bad request, no data provided" );},
+                400: function(data) {
+                        dataa = JSON.stringify(data);
+                        var to_show = JSON.parse(dataa);
+                        var to_showw = JSON.parse(to_show.responseText);
+                        alert(to_showw.errors);
+                        },
                 201: function() {alert( "user created" );
                     $("#profile_div").show();
                     $("#log_in_register_div").hide();}

@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-
+import datetime
 
 class Timezones(models.Model):
 
@@ -18,5 +18,3 @@ class UserEntry(models.Model):
     user = models.ForeignKey(User)
     gmt_offset_display = models.TimeField(default="00:00:00")
     tmz = models.ManyToManyField(Timezones)
-
-
