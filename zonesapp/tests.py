@@ -190,7 +190,7 @@ class TestViews:
 
         factory = RequestFactory()
         user = User.objects.create_user(username='test_user3', email='test3@test.com', password='test_password3')
-        request = factory.post('/submit_entry/', 'entry_name=tname&city_name=London&gmt_offset=02:00', 'application/x-www-form-urlencoded')
+        request = factory.post('/submit_entry/', 'edit_by_id', 'application/x-www-form-urlencoded')
         request.META['HTTP_AUTHORIZATION'] = "Basic " + base64.b64encode("test_user3:test_password3")
         request.user = user
         response = submit_entry(request)
